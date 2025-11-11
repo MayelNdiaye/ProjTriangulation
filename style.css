@@ -53,3 +53,10 @@ button:hover {
     margin-bottom: 1.5rem;
     text-align: left;
 }
+
+custom-popup canvas {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1rem auto;
+}
