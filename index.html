@@ -65,5 +65,22 @@
     <custom-popup id="popupex">
         <p>Lorem ipsum popup content. Equations preserved outside: \(E = mc^2\)</p>
     </custom-popup>
+
+
+    <h2>Transforming games</h2>
+    
+    <p>The goal of the game is to obtain more green edges than black edges</p>
+
+    <button onclick="document.querySelector('#greenWinsPopup').show()">
+        Green-Wins Solitaire game
+    </button>
+
+    <custom-popup id="greenWinsPopup">
+        <u>Green-Wins Solitaire game</u>
+        <p>Flip an edge inside a convexe quadrilateral by clicking on it</p>
+        <div id="green-wins-container" style="width: 900px; height: 700px;"></div>
+        <script src="games/transforming/Green-Wins Solitaire"></script>
+    </custom-popup>
+
 </body>
 </html>
