@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="style.css">
     <script src="popup-element.js"></script>
     <script src="app.js" defer></script>
+    <script src="p5.min.js"></script> 
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
@@ -39,7 +40,7 @@
         </p>
     </div>
 
-    <h2>Lorem ipsum — perfect-information combinatorial games</h2>
+    <h2>Constructing games</h2>
 
     <div class="scientific-content">
         <p>
@@ -48,7 +49,11 @@
             \[\frac{\partial^2 \psi}{\partial t^2} = c^2 \nabla^2 \psi\]
             as a running example within ipsum dolor sit amet.
         </p>
-
+        <button onclick="document.querySelector('#completetriangpopup').show()">Monochromatic Complete Triangulation game</button>
+        <custom-popup id="completetriangpopup">
+            <p>Monochromatic Complete Triangulation game</p>
+            <script src="games/constructing/complete-triangulation.js"></script>
+        </custom-popup>
         <p>
             Lorem ipsum dolor sit amet, the oscillator Hamiltonian
             \[H = \frac{p^2}{2m} + \frac{1}{2}m\omega^2x^2\]
