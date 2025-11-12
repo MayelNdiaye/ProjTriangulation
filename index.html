@@ -68,8 +68,32 @@
 
 
     <h2>Transforming games</h2>
+
+
+    <div class="scientific-content">
+        <p>
+            In this category, we start from a triangulation T(S) of a set of points S. The player can flip an edges under certain conditions. 
+            For exemple, in Green Solitaire games, an edge can be flipped only if it is black and if it is flippable, meaning it must be the diagonal of a convex quadrilateral 
+            formed by two adjacent triangles. When an edge is flipped, it is replaced by the other diagonal of that quadrilateral, creating two new triangles 
+            and in the case of Green Solitaire games, edges of thoses new triangles become green.
+        </p>
+    </div>
     
-    <p>The goal of the game is to obtain more green edges than black edges</p>
+    <p>The goal of this game is to color all edges green :</p>
+
+    <button onclick="document.querySelector('#allGreenPopup').show()">
+    All-Green Solitaire game
+    </button>
+
+    <custom-popup id="allGreenPopup">
+        <u>All-Green Solitaire game</u>
+        <p>Flip an black edge inside a convexe quadrilateral by clicking on it</p>
+        <div id="all-green-container" style="width: 900px; height: 700px;"></div>
+        <script src="games/transforming/All-Green Solitaire.js"></script>
+    </custom-popup>
+
+
+    <p>The goal of this game is to obtain more green edges than black edges :</p>
 
     <button onclick="document.querySelector('#greenWinsPopup').show()">
         Green-Wins Solitaire game
@@ -77,10 +101,26 @@
 
     <custom-popup id="greenWinsPopup">
         <u>Green-Wins Solitaire game</u>
-        <p>Flip an edge inside a convexe quadrilateral by clicking on it</p>
+        <p>Flip an black edge inside a convexe quadrilateral by clicking on it</p>
         <div id="green-wins-container" style="width: 900px; height: 700px;"></div>
-        <script src="games/transforming/Green-Wins Solitaire"></script>
+        <script src="games/transforming/Green-Wins Solitaire.js"></script>
     </custom-popup>
 
+
+    <section id="references">
+  <h2>References</h2>
+  <ol>
+    <li>
+      O. Aichholzer, D. Bremner, E. D. Demaine, F. Hurtado, E. Kranakis, H. Krasser,
+      S. Ramaswami, S. Sethia, and J. Urrutia,
+      “Games on triangulations,” <em>Theoretical Computer Science</em>,
+      vol. 343, no. 1–2, pp. 42–71, 2005.
+      [Online]. Available:
+      <a href="https://erikdemaine.org/papers/TriangulationGames_TCS/paper.pdf" target="_blank" rel="noopener noreferrer">
+        https://erikdemaine.org/papers/TriangulationGames_TCS/paper.pdf
+      </a>
+    </li>
+  </ol>
+</section>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const greenWinsSketch = (p) => {
+const allGreenSketch = (p) => {
   ////////// Data Struct //////////
 
   class Point {
@@ -8,26 +8,24 @@ const greenWinsSketch = (p) => {
     }
   }
 
-  let points = []; 
-  let PolygoneList = []; 
-  let EarList = []; 
+  let points = [];
+  let PolygoneList = [];
+  let EarList = [];
   let Triangles = [];
 
   let LockedEdges = [];
   let LockedQuads = [];
 
   let totalEdges = 0;
-  let lowerBound = 0;
 
-  let buttonClear;
   let buttonRandom;
 
   ////////// Drawing //////////
 
   p.setup = function () {
-    const parent = document.getElementById("green-wins-container");
-    const w = parent.clientWidth || 900;
-    const h = parent.clientHeight || 700;
+    const parent = document.getElementById("all-green-container");
+    const w = parent?.clientWidth || 900;
+    const h = parent?.clientHeight || 700;
 
     const canvas = p.createCanvas(w, h);
     canvas.parent(parent);
@@ -35,41 +33,41 @@ const greenWinsSketch = (p) => {
     p.fill("black");
     p.textSize(16);
 
-    // Generate random (often non-convex) polygon + triangulate
     buttonRandom = p.createButton("New Polygon");
     buttonRandom.parent(parent);
     buttonRandom.position(30, 30);
-    buttonRandom.mousePressed(AddRandomPolygon);
+    buttonRandom.mousePressed(AddConvexePolygon);
   };
 
   p.draw = function () {
     p.background(150);
 
-    p.text(`n = ${points.length}`, 20, 40);
+    p.text(`number of points : ${points.length}`, 20, 40);
 
-    p.text(`Current Black edges : ${totalEdges - LockedEdges.length}`, 20, 80);
-    p.text(`Current Green edges : ${LockedEdges.length}`, 20, 100);
+    p.text(`Current Green edges : ${LockedEdges.length}`, 20, 80);
+    p.text(`Remaining Black     : ${Math.max(0, totalEdges - LockedEdges.length)}`, 20, 100);
 
-    p.text(`Lower bound: ${lowerBound}`, 20, 140)
-
-    if (totalEdges - LockedEdges.length < LockedEdges.length) {
+    // All-Green victory condition
+    if (LockedEdges.length >= totalEdges && totalEdges > 0) {
       p.fill("green");
       p.textSize(30);
-      p.text("You Won", p.width - 160, p.height - 80);
+      p.text("You Won!", p.width - 420, p.height - 80);
       p.fill("black");
       p.textSize(16);
     }
-    
 
+    // draw points
     for (let pt of points) {
       p.ellipse(pt.x, pt.y, 4, 4);
     }
 
+    // draw diagonals/ears (black)
     p.stroke("black");
     for (let e of EarList) {
       p.line(e[0].x, e[0].y, e[1].x, e[1].y);
     }
 
+    // draw boundary polygon
     if (points.length >= 2) {
       for (let j = 0; j < points.length; j++) {
         const a = points[j];
@@ -78,6 +76,7 @@ const greenWinsSketch = (p) => {
       }
     }
 
+    // draw green quads
     p.stroke("green");
     for (const quad of LockedQuads) {
       for (let i = 0; i < 4; i++) {
@@ -89,6 +88,7 @@ const greenWinsSketch = (p) => {
       }
     }
 
+    // draw green locked edges
     for (const [i1, i2] of LockedEdges) {
       const p1 = points[i1];
       const p2 = points[i2];
@@ -99,18 +99,14 @@ const greenWinsSketch = (p) => {
   };
 
   p.mousePressed = function () {
-
     // Check if click is on edge
     const edge = findClickedEdge(p.mouseX, p.mouseY, points);
-
-    if (edge) {
-      onEdgeClick(edge);
-    }
+    if (edge) onEdgeClick(edge);
   };
 
   // Resize canvas with container
   p.windowResized = function () {
-    const parent = document.getElementById("green-wins-container");
+    const parent = document.getElementById("all-green-container");
     if (!parent) return;
     const w = parent.clientWidth || 900;
     const h = parent.clientHeight || 700;
@@ -126,44 +122,46 @@ const greenWinsSketch = (p) => {
     Triangles = [];
     LockedEdges = [];
     LockedQuads = [];
-    worstCaseUpperBound = 0;
-    lowerBound = 0;
+    totalEdges = 0;
   }
 
-  function AddRandomPolygon() {
-    points = [];
-    PolygoneList = [];
-    EarList = [];
-    Triangles = [];
-    LockedEdges = [];
-    LockedQuads = [];
-    worstCaseUpperBound = 0;
-    lowerBound = 0;
+  function AddConvexePolygon() {
+    resetpoints()
 
-    const n = p.int(p.random(10, 30)); 
+    // size
+    const n = p.int(p.random(10, 20));
 
-    const cx = p.random(200, p.width - 200);
-    const cy = p.random(200, p.height - 200);
-    const rMin = 80;
-    const rMax = 250;
+    // center and base radii
+    const cx = p.random(220, p.width - 220);
+    const cy = p.random(220, p.height - 220);
+    const r = p.random(140, 220);
 
-    let tmp = [];
-    for (let i = 0; i < n; i++) {
-      const angle = p.random(0, p.TWO_PI);
-      const radius = p.random(rMin, rMax);
-      const x = cx + radius * p.cos(angle);
-      const y = cy + radius * p.sin(angle);
-      tmp.push({ angle, x, y });
+    const ex = p.random(0.85, 1.15);
+    const ey = p.random(0.85, 1.15);
+
+    const minGap = 0.015 * p.TWO_PI;
+    const angles = [];
+    while (angles.length < n) {
+        const a = p.random(0, p.TWO_PI);
+
+        if (angles.every(b => {
+        let d = Math.abs(a - b);
+        d = Math.min(d, p.TWO_PI - d);
+        return d > minGap;
+        })) {
+        angles.push(a);
+        }
     }
+    angles.sort((a, b) => a - b);
 
-    // Sort vertices by angle to get a simple (star-shaped) polygon
-    tmp.sort((a, b) => a.angle - b.angle);
-    for (let v of tmp) {
-      points.push(new Point(v.x, v.y));
+    for (const ang of angles) {
+        const x = cx + (r * ex) * Math.cos(ang);
+        const y = cy + (r * ey) * Math.sin(ang);
+        points.push(new Point(x, y));
     }
 
     Triangulate();
-  }
+    }
 
   /////////// Triangulation  //////////
 
@@ -176,7 +174,7 @@ const greenWinsSketch = (p) => {
       findEar(PolygoneList);
     }
 
-    computeColorBounds();
+    computeTotals();
   }
 
   // Recursive ear search and removal
@@ -226,7 +224,6 @@ const greenWinsSketch = (p) => {
     }
     return s; // > 0: CCW, < 0: CW
   }
-
 
   function findConvexVer(List) {
     const ConvList = [];
@@ -279,7 +276,7 @@ const greenWinsSketch = (p) => {
     return false;
   }
 
-  // Find index of point p 
+  // Find index of point p
   function findIndexInPoints(p0) {
     return points.findIndex((q0) => q0.x === p0.x && q0.y === p0.y);
   }
@@ -317,7 +314,7 @@ const greenWinsSketch = (p) => {
     return p.dist(px, py, projx, projy);
   }
 
-  // Find closest edge 
+  // Find closest edge
   function findClickedEdge(mx, my, list) {
     if (list.length < 2 && EarList.length === 0) return null;
 
@@ -374,7 +371,7 @@ const greenWinsSketch = (p) => {
     return adj;
   }
 
-  // Check convexity of quadrilateral 
+  // Check convexity of quadrilateral
   function isConvexQuad(A, C, B, D) {
     const quad = [A, C, B, D];
     let sign = 0;
@@ -454,24 +451,18 @@ const greenWinsSketch = (p) => {
     LockedQuads.push([iA, iC, iB, iD]);
   }
 
-
   function onEdgeClick(edge) {
-
     const iA = findIndexInPoints(edge.a);
     const iB = findIndexInPoints(edge.b);
 
     if (iA === -1 || iB === -1) return;
 
-    if (isEdgeLocked(iA, iB)) {
-      return;
-    }
+    if (isEdgeLocked(iA, iB)) return;
 
     const adj = findAdjacentTrianglesForEdge(iA, iB);
 
     // Need exactly two adjacent triangles for a flippable edge
-    if (adj.length !== 2) {
-      return;
-    }
+    if (adj.length !== 2) return;
 
     const tri1 = adj[0].tri;
     const tri2 = adj[1].tri;
@@ -479,31 +470,25 @@ const greenWinsSketch = (p) => {
     const iC = tri1.find((i) => i !== iA && i !== iB);
     const iD = tri2.find((i) => i !== iA && i !== iB);
 
-    if (!isConvexQuad(points[iA], points[iC], points[iB], points[iD])) {
-      return;
-    }
+    if (!isConvexQuad(points[iA], points[iC], points[iB], points[iD])) return;
 
     flipEdge(iA, iB, iC, iD);
   }
 
-  function computeColorBounds() {
+  function computeTotals() {
     const n = points.length;
     if (n < 3) {
-      worstCaseUpperBound = 0;
-      lowerBound = 0;
+      totalEdges = 0;
       return;
     }
-    // edges = boundary n + diagonals (n - 3) = 2n - 3
+    // In any triangulation of a simple n-gon: edges = boundary n + diagonals (n - 3) = 2n - 3
     totalEdges = 2 * n - 3;
-
-    // Lower bound: at least 1/6 of edges can always be made green
-    lowerBound = Math.ceil(totalEdges / 6);
   }
 };
 
 window.addEventListener("load", () => {
-  const container = document.getElementById("green-wins-container");
+  const container = document.getElementById("all-green-container");
   if (container) {
-    new p5(greenWinsSketch, container);
+    new p5(allGreenSketch, container);
   }
 });
