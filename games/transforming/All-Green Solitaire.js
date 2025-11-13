@@ -9,14 +9,13 @@ const allGreenSketch = (p) => {
   }
 
   let points = [];
-  let PolygoneList = [];
-  let EarList = [];
+  let DelaunayEdges = [];
   let Triangles = [];
 
   let LockedEdges = [];
-  let LockedQuads = [];
 
   let totalEdges = 0;
+  let lowerBound = 0;
 
   let buttonRandom;
 
@@ -33,14 +32,17 @@ const allGreenSketch = (p) => {
     p.fill("black");
     p.textSize(16);
 
-    buttonRandom = p.createButton("New Polygon");
+    buttonRandom = p.createButton("New Triangulation");
     buttonRandom.parent(parent);
     buttonRandom.position(30, 30);
-    buttonRandom.mousePressed(AddConvexePolygon);
+    buttonRandom.mousePressed(AddRandomDelaunay);
   };
 
   p.draw = function () {
     p.background(150);
+
+    p.fill("black");
+    p.textSize(16);
 
     p.text(`number of points : ${points.length}`, 20, 40);
 
@@ -51,60 +53,44 @@ const allGreenSketch = (p) => {
     if (LockedEdges.length >= totalEdges && totalEdges > 0) {
       p.fill("green");
       p.textSize(30);
-      p.text("You Won!", p.width - 420, p.height - 80);
+      p.text("You Won!", p.width - 200, p.height - 80);
       p.fill("black");
       p.textSize(16);
     }
+
 
     // draw points
     for (let pt of points) {
       p.ellipse(pt.x, pt.y, 4, 4);
     }
 
-    // draw diagonals/ears (black)
+    
+
+    // draw all Delaunay edges in black
     p.stroke("black");
-    for (let e of EarList) {
+    for (let e of DelaunayEdges) {
       p.line(e[0].x, e[0].y, e[1].x, e[1].y);
     }
 
-    // draw boundary polygon
-    if (points.length >= 2) {
-      for (let j = 0; j < points.length; j++) {
-        const a = points[j];
-        const b = points[(j + 1) % points.length];
-        p.line(a.x, a.y, b.x, b.y);
-      }
-    }
-
-    // draw green quads
+    
     p.stroke("green");
-    for (const quad of LockedQuads) {
-      for (let i = 0; i < 4; i++) {
-        const i1 = quad[i];
-        const i2 = quad[(i + 1) % 4];
-        const p1 = points[i1];
-        const p2 = points[i2];
-        p.line(p1.x, p1.y, p2.x, p2.y);
-      }
-    }
-
-    // draw green locked edges
     for (const [i1, i2] of LockedEdges) {
       const p1 = points[i1];
       const p2 = points[i2];
       p.line(p1.x, p1.y, p2.x, p2.y);
     }
-
     p.stroke("black");
   };
 
+  
+
   p.mousePressed = function () {
-    // Check if click is on edge
-    const edge = findClickedEdge(p.mouseX, p.mouseY, points);
-    if (edge) onEdgeClick(edge);
+    const edge = findClickedEdge(p.mouseX, p.mouseY);
+    if (edge) {
+      onEdgeClick(edge);
+    }
   };
 
-  // Resize canvas with container
   p.windowResized = function () {
     const parent = document.getElementById("all-green-container");
     if (!parent) return;
@@ -117,372 +103,306 @@ const allGreenSketch = (p) => {
 
   function resetpoints() {
     points = [];
-    PolygoneList = [];
-    EarList = [];
+    DelaunayEdges = [];
     Triangles = [];
     LockedEdges = [];
-    LockedQuads = [];
+    lowerBound = 0;
     totalEdges = 0;
   }
 
-  function AddConvexePolygon() {
-    resetpoints()
+  
 
-    // size
-    const n = p.int(p.random(10, 20));
+  function AddRandomDelaunay() {
+    resetpoints();
 
-    // center and base radii
-    const cx = p.random(220, p.width - 220);
-    const cy = p.random(220, p.height - 220);
-    const r = p.random(140, 220);
+    const n = p.int(p.random(20, 60));
+    const margin = 100;
 
-    const ex = p.random(0.85, 1.15);
-    const ey = p.random(0.85, 1.15);
-
-    const minGap = 0.015 * p.TWO_PI;
-    const angles = [];
-    while (angles.length < n) {
-        const a = p.random(0, p.TWO_PI);
-
-        if (angles.every(b => {
-        let d = Math.abs(a - b);
-        d = Math.min(d, p.TWO_PI - d);
-        return d > minGap;
-        })) {
-        angles.push(a);
-        }
-    }
-    angles.sort((a, b) => a - b);
-
-    for (const ang of angles) {
-        const x = cx + (r * ex) * Math.cos(ang);
-        const y = cy + (r * ey) * Math.sin(ang);
-        points.push(new Point(x, y));
+    // random points
+    for (let i = 0; i < n; i++) {
+      const x = p.random(margin, p.width - margin);
+      const y = p.random(margin, p.height - margin);
+      points.push(new Point(x, y));
     }
 
-    Triangulate();
-    }
+    // keep only points in convex position
+    points = convexHull(points);
 
-  /////////// Triangulation  //////////
+    DelaunayTriangulation();
+    computeBounds();
+  }
 
-  function Triangulate() {
-    EarList = [];
+  ////////// Delaunay triangulation  //////////
+
+  function DelaunayTriangulation() {
+    DelaunayEdges = [];
     Triangles = [];
-    PolygoneList = structuredClone(points);
 
-    if (PolygoneList.length > 3) {
-      findEar(PolygoneList);
+    if (points.length < 3) return;
+
+    const coords = points.map(pt => [pt.x, pt.y]);
+
+    // get an array of point indices that form a triangle
+    const delaunay = Delaunator.from(coords);
+    const t = delaunay.triangles;
+
+    // find the triangles
+    for (let i = 0; i < t.length; i += 3) {
+      Triangles.push([t[i], t[i + 1], t[i + 2]]);
     }
 
-    computeTotals();
-  }
+    // need a unique undirected edge set 
+    const edgeMap = new Map();
 
-  // Recursive ear search and removal
-  function findEar(List) {
-    const ConvList = findConvexVer(List);
-    const n = List.length;
-
-    for (let i of ConvList) {
-      const prev = List[(i - 1 + n) % n];
-      const curr = List[i];
-      const next = List[(i + 1) % n];
-
-      let isEar = true;
-
-      for (let pnt of List) {
-        if (pnt === prev || pnt === curr || pnt === next) continue;
-        if (IsInTriangle([prev, curr, next], pnt)) {
-          isEar = false;
-          break;
-        }
-      }
-
-      if (isEar) {
-        EarList.push([prev, next]);
-
-        const iPrev = findIndexInPoints(prev);
-        const iCurr = findIndexInPoints(curr);
-        const iNext = findIndexInPoints(next);
-        Triangles.push([iPrev, iCurr, iNext]);
-
-        PolygoneList.splice(i, 1);
-        findEar(PolygoneList);
-        return;
+    function addEdge(i, j) {
+      const a = Math.min(i, j);
+      const b = Math.max(i, j);
+      const key = `${a}-${b}`;
+      if (!edgeMap.has(key)) {
+        edgeMap.set(key, [a, b]);
       }
     }
-  }
 
-  ////////// Geometry helpers //////////
-
-  function Winding(poly) {
-    let s = 0;
-    const n = poly.length;
-    for (let i = 0; i < n; i++) {
-      const p0 = poly[i];
-      const q0 = poly[(i + 1) % n];
-      s += p0.x * q0.y - p0.y * q0.x;
+    for (const tri of Triangles) {
+      const [i0, i1, i2] = tri;
+      addEdge(i0, i1);
+      addEdge(i1, i2);
+      addEdge(i2, i0);
     }
-    return s; // > 0: CCW, < 0: CW
-  }
 
-  function findConvexVer(List) {
-    const ConvList = [];
-    const n = List.length;
-    if (n < 3) return [];
-
-    const wind = Math.sign(Winding(List));
-
-    for (let i = 0; i < n; i++) {
-      const prev = List[(i - 1 + n) % n];
-      const curr = List[i];
-      const next = List[(i + 1) % n];
-
-      const det = Orientation(prev, curr, next);
-      if (det * wind < 0) {
-        ConvList.push(i);
-      }
+    DelaunayEdges = [];
+    for (const [i, j] of edgeMap.values()) {
+      DelaunayEdges.push([points[i], points[j]]);
     }
-    return ConvList;
+
+    totalEdges = edgeMap.size;
   }
+
+  ////////// Helpers //////////
 
   function Orientation(p0, q0, r0) {
     const det = -((q0.x - p0.x) * (r0.y - p0.y) - (q0.y - p0.y) * (r0.x - p0.x));
     return det; // > 0: CCW, < 0: CW, 0: collinear
   }
 
-  // Check if point r is inside triangle
-  function IsInTriangle(TriangleList, r) {
-    const detList = [];
+  function convexHull(pts) {
+    if (pts.length <= 1) return pts.slice();
 
-    if (TriangleList.length >= 3) {
-      for (let i = 0; i < 3; i++) {
-        const px = TriangleList[i].x;
-        const py = TriangleList[i].y;
-        const qx = TriangleList[(i + 1) % 3].x;
-        const qy = TriangleList[(i + 1) % 3].y;
-        const rx = r.x;
-        const ry = r.y;
+    const sorted = pts.slice().sort((a, b) => {
+      if (a.x === b.x) return a.y - b.y;
+      return a.x - b.x;
+    });
 
-        const det = -((qx - px) * (ry - py) - (qy - py) * (rx - px));
-        detList.push(det);
+    const lower = [];
+    for (const p0 of sorted) {
+      while (
+        lower.length >= 2 &&
+        cross(lower[lower.length - 2], lower[lower.length - 1], p0) <= 0
+      ) {
+        lower.pop();
       }
-
-      const allPositive = detList.every((n) => n > 0);
-      const allNegative = detList.every((n) => n < 0);
-
-      return allPositive || allNegative;
+      lower.push(p0);
     }
 
-    return false;
+    const upper = [];
+    for (let i = sorted.length - 1; i >= 0; i--) {
+      const p0 = sorted[i];
+      while (
+        upper.length >= 2 &&
+        cross(upper[upper.length - 2], upper[upper.length - 1], p0) <= 0
+      ) {
+        upper.pop();
+      }
+      upper.push(p0);
+    }
+
+    // remove duplicated endpoints
+    upper.pop();
+    lower.pop();
+
+    return lower.concat(upper);
   }
 
-  // Find index of point p
+  function cross(o, a, b) {
+    return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+  }
+
   function findIndexInPoints(p0) {
     return points.findIndex((q0) => q0.x === p0.x && q0.y === p0.y);
   }
 
-  // Approx coordinate equality
+  // equality with precision errors
   function samePoint(p0, q0) {
     const eps = 1e-6;
     return Math.abs(p0.x - q0.x) < eps && Math.abs(p0.y - q0.y) < eps;
   }
 
-  ////////// Edge clicking & flipping //////////
-
-  // Distance from point P to segment AB
+  // distance from a point P to a segment AB
   function distPointToSegment(px, py, x1, y1, x2, y2) {
-    const vx = x2 - x1;
-    const vy = y2 - y1;
 
-    const wx = px - x1;
-    const wy = py - y1;
+    // get vector AB
+    const AB_x = x2 - x1;
+    const AB_y = y2 - y1;
 
-    const c1 = vx * wx + vy * wy;
-    if (c1 <= 0) {
-      return p.dist(px, py, x1, y1); // closest to A
+    // get vector AP
+    const AP_x = px - x1;
+    const AP_y = py - y1;
+
+    // projection of P
+    const projP = AB_x * AP_x + AB_y * AP_y;
+
+    // before A
+    if (projP <= 0) {
+      return p.dist(px, py, x1, y1);
     }
 
-    const c2 = vx * vx + vy * vy;
-    if (c2 <= c1) {
-      return p.dist(px, py, x2, y2); // closest to B
+    const sqLen = AB_x * AB_x + AB_y * AB_y;
+
+    // after B
+    if (sqLen <= projP) {
+      return p.dist(px, py, x2, y2);
     }
 
-    const t = c1 / c2;
-    const projx = x1 + t * vx;
-    const projy = y1 + t * vy;
-
+    // on AB
+    const t = projP / sqLen;
+    const projx = x1 + t * AB_x; // get projected coord
+    const projy = y1 + t * AB_y;
     return p.dist(px, py, projx, projy);
+
   }
 
-  // Find closest edge
-  function findClickedEdge(mx, my, list) {
-    if (list.length < 2 && EarList.length === 0) return null;
+  // find clicked edge
+  function findClickedEdge(mouse_x, mouse_y) {
+    if (DelaunayEdges.length === 0) return null;
 
-    const threshold = 15; // click distance
-    let best = null;
+    const threshold = 15;
+    let bestEdge = null;
     let bestDist = Infinity;
 
-    if (list.length >= 2) {
-      for (let i = 0; i < list.length; i++) {
-        const a = list[i];
-        const b = list[(i + 1) % list.length];
-
-        const d = distPointToSegment(mx, my, a.x, a.y, b.x, b.y);
-        if (d <= threshold && d < bestDist) {
-          bestDist = d;
-          best = {
-            kind: "boundary",
-            index: i,
-            a,
-            b,
-          };
-        }
-      }
-    }
-
-    for (let k = 0; k < EarList.length; k++) {
-      const [a, b] = EarList[k];
-      const d = distPointToSegment(mx, my, a.x, a.y, b.x, b.y);
+    for (let i = 0; i < DelaunayEdges.length; i++) {
+      const [a, b] = DelaunayEdges[i];
+      const d = distPointToSegment(mouse_x, mouse_y, a.x, a.y, b.x, b.y);
       if (d <= threshold && d < bestDist) {
         bestDist = d;
-        best = {
-          kind: "diagonal",
-          index: k,
-          a,
-          b,
-        };
+        bestEdge = {a,b};
       }
     }
 
-    return best;
+    return bestEdge;
   }
 
-  // Triangles that contain both vertices A and B
-  function findAdjacentTrianglesForEdge(A, B) {
+  ////////// Edge flipping //////////
+
+  // triangles that contain both vertices A and B
+  function findAdjacentTriangles(A, B) {
     const adj = [];
-    for (let tIndex = 0; tIndex < Triangles.length; tIndex++) {
-      const T = Triangles[tIndex];
-      const hasA = T.includes(A);
-      const hasB = T.includes(B);
-      if (hasA && hasB) {
-        adj.push({ index: tIndex, tri: T });
+    for (let i = 0; i < Triangles.length; i++) {
+      if (Triangles[i].includes(A) && Triangles[i].includes(B)) {
+        adj.push({ index: i, tri: Triangles[i]});
       }
     }
     return adj;
   }
 
-  // Check convexity of quadrilateral
+  // check convexity of quadrilateral
   function isConvexQuad(A, C, B, D) {
     const quad = [A, C, B, D];
     let sign = 0;
 
     for (let i = 0; i < 4; i++) {
-      const p0 = quad[i];
-      const q0 = quad[(i + 1) % 4];
-      const r0 = quad[(i + 2) % 4];
-
-      const o = Orientation(p0, q0, r0);
+      const o = Orientation(quad[i], quad[(i + 1) % 4], quad[(i + 2) % 4]);
       const s = Math.sign(o);
 
-      if (s === 0) continue;
-      if (sign === 0) sign = s;
+      if (s === 0) continue; // colinear
+      if (sign === 0) sign = s; // set the direction
       else if (sign !== s) return false;
     }
 
     return true;
   }
 
-  // Check if an edge is locked
-  function isEdgeLocked(iA, iB) {
+  function isEdgeLocked(A, B) {
     for (const [u, v] of LockedEdges) {
-      if ((u === iA && v === iB) || (u === iB && v === iA)) return true;
+      if ((u === A && v === B) || (u === B && v === A)) return true;
     }
     return false;
   }
 
-  function removeDiagonalFromEarList(iA, iB) {
-    const A = points[iA];
-    const B = points[iB];
 
-    EarList = EarList.filter(([p0, q0]) => {
-      const matchAB =
-        (samePoint(p0, A) && samePoint(q0, B)) ||
-        (samePoint(p0, B) && samePoint(q0, A));
-      return !matchAB;
-    });
-  }
+  function flipEdge(A, B, C, D) {
 
-  // Perform the actual flip on edge (iA, iB) using opposite vertices (iC, iD)
-  function flipEdge(iA, iB, iC, iD) {
-    // Remove the two old triangles that contain edge (iA, iB)
+    // Make a new Triangle list without the removed triangles
     const newTriangles = [];
     for (const T of Triangles) {
-      const hasA = T.includes(iA);
-      const hasB = T.includes(iB);
+      const hasA = T.includes(A);
+      const hasB = T.includes(B);
       if (!(hasA && hasB)) {
         newTriangles.push(T);
       }
     }
 
-    // Add two new triangles with diagonal (iC, iD)
-    newTriangles.push([iA, iC, iD]);
-    newTriangles.push([iB, iC, iD]);
+    // Add two new triangles
+    newTriangles.push([A, C, D]);
+    newTriangles.push([B, C, D]);
 
     Triangles = newTriangles;
 
-    // remove old (iA, iB) and add new (iC, iD)
-    removeDiagonalFromEarList(iA, iB);
-    EarList.push([points[iC], points[iD]]);
+    // remove old and add new edge
+    DelaunayEdges = DelaunayEdges.filter(([p0, q0]) => {
+      const matchAB =
+        (samePoint(p0, points[A]) && samePoint(q0, points[B])) ||
+        (samePoint(p0, points[B]) && samePoint(q0, points[A]));
+        return !matchAB;
+    })
 
-    // Mark all 5 edges of the quadrilateral A–C–B–D as green & locked
+    DelaunayEdges.push([points[C], points[D]]);
+
+    // lock the 5 edges
     const newLocked = [
-      [iA, iC],
-      [iC, iB],
-      [iB, iD],
-      [iD, iA],
-      [iC, iD],
+      [A, C],
+      [C, B],
+      [B, D],
+      [D, A],
+      [C, D],
     ];
 
     for (const [u, v] of newLocked) {
       if (!isEdgeLocked(u, v)) LockedEdges.push([u, v]);
     }
-
-    // Store quadrilateral cycle A–C–B–D for green drawing
-    LockedQuads.push([iA, iC, iB, iD]);
   }
 
   function onEdgeClick(edge) {
-    const iA = findIndexInPoints(edge.a);
-    const iB = findIndexInPoints(edge.b);
+    const A = findIndexInPoints(edge.a);
+    const B = findIndexInPoints(edge.b);
 
-    if (iA === -1 || iB === -1) return;
+    if (A === -1 || B === -1) return;
 
-    if (isEdgeLocked(iA, iB)) return;
-
-    const adj = findAdjacentTrianglesForEdge(iA, iB);
-
-    // Need exactly two adjacent triangles for a flippable edge
-    if (adj.length !== 2) return;
-
-    const tri1 = adj[0].tri;
-    const tri2 = adj[1].tri;
-
-    const iC = tri1.find((i) => i !== iA && i !== iB);
-    const iD = tri2.find((i) => i !== iA && i !== iB);
-
-    if (!isConvexQuad(points[iA], points[iC], points[iB], points[iD])) return;
-
-    flipEdge(iA, iB, iC, iD);
-  }
-
-  function computeTotals() {
-    const n = points.length;
-    if (n < 3) {
-      totalEdges = 0;
+    if (isEdgeLocked(A, B)) {
       return;
     }
-    // In any triangulation of a simple n-gon: edges = boundary n + diagonals (n - 3) = 2n - 3
-    totalEdges = 2 * n - 3;
+
+    const adj = findAdjacentTriangles(A, B);
+
+    // check if has two adjacent triangles
+    if (adj.length !== 2) {
+      return;
+    }
+
+    // find the other 2 vetices 
+    const C = adj[0].tri.find((i) => i !== A && i !== B);
+    const D = adj[1].tri.find((i) => i !== A && i !== B);
+
+
+    // check if the quadrilateral is Convex
+    if (!isConvexQuad(points[A], points[C], points[B], points[D])) {
+      return;
+    }
+
+    flipEdge(A, B, C, D);
+  }
+
+  function computeBounds() {
+    lowerBound = Math.ceil(totalEdges / 6);
   }
 };
 
