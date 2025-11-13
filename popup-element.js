@@ -30,6 +30,33 @@ class PopupElement extends HTMLElement {
                 .popup-content button:hover {
                     background: #353535;
                 }
+
+                /* style projected light-DOM elements (input, button, canvas) */
+                ::slotted(button) {
+                    background: #f8f8f8;
+                    border: 1px solid #e0e0e0;
+                    padding: 0.85rem 1.75rem;
+                    border-radius: 50px;
+                    font-size: 0.95rem;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+                ::slotted(button:hover) {
+                    background: #fff;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+                ::slotted(input) {
+                    padding: 0.5rem 0.75rem;
+                    font-size: 0.95rem;
+                    border: 1px solid #ccc;
+                    border-radius: 6px;
+                }
+                ::slotted(canvas) {
+                    max-width: 100%;
+                    height: auto;
+                    display: block;
+                    margin: 1rem auto;
+                }
             </style>
             <div class="popup-content">
                 <slot></slot>
