@@ -40,10 +40,10 @@ const nimString = (p) => {
   p.mousePressed = function () {
     for (let e of p.edges) {
       if (!e.marked && p.isMouseNearEdge(e)) {
-        // Mark edge
+        // Mark edge green
         e.marked = true;
         e.owner = p.currentPlayer;
-        e.color = p.colors[p.currentPlayer];
+        e.color = "green";
 
         let completed = p.checkCompletedTriangles(p.currentPlayer);
 
@@ -127,17 +127,17 @@ const nimString = (p) => {
     for (let t of p.triangles) {
       if (t.completedBy === null) {
         let count = 0;
-        for (let i = 0; i < p.edges.length; i++) {
-          let e = p.edges[i];
-          if (t.edges.includes(i) && e.marked && e.owner == player) {
+        for (let i = 0; i < t.edges.length; i++) {
+          let edgeIdx = t.edges[i];
+          let e = p.edges[edgeIdx];
+          if (e.marked) {
             count++;
           }
         }
 
-        if (count == 3) {
+        if (count === 3) {
           t.completedBy = player;
           completed++;
-          break;
         }
       }
     }
@@ -214,8 +214,7 @@ const nimString = (p) => {
       let q = p.points[e.b];
 
       p.strokeWeight(e.marked ? 4 : 1);
-      if (e.marked) p.stroke(p.colors[e.owner]);
-      else p.stroke(0);
+      p.stroke(e.color);
 
       p.line(p1.x, p1.y, q.x, q.y);
     }
@@ -225,7 +224,7 @@ const nimString = (p) => {
     p.noFill();
     for (let t of p.triangles) {
       if (t.completedBy !== null) {
-        p.fill(t.completedBy === 0 ? "rgba(255,0,0,0.2)" : "rgba(0,0,255,0.2)");
+        p.fill("rgba(0,255,0,0.2)");
         p.noStroke();
         let set_p = p.getUniqueVertices(t.edges);
         let p1 = set_p[0];
