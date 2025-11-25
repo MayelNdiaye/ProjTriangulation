@@ -36,22 +36,23 @@
 
     <h2>Transforming games</h2>
 
-
     <div class="scientific-content">
         <p>
-            In this category, we start from a triangulation T(S) of a set of points S. The player can flip an edges under certain conditions. 
+            In this category, we start from a triangulation <span class="math">T(S)</span>  of a set of points <span class="math">S</span> . The player can flip an edges under certain conditions. 
             For exemple, in Green Solitaire games, an edge can be flipped only if it is black and if it is flippable, meaning it must be the diagonal of a convex quadrilateral 
             formed by two adjacent triangles. When an edge is flipped, it is replaced by the other diagonal of that quadrilateral, creating two new triangles 
             and in the case of Green Solitaire games, edges of thoses new triangles become green.
         </p>
     </div>
     
-    <h2>1. All-Green Solitaire game</h2>
+    <h3>1. All-Green Solitaire Game</h3>
 
-    <p>The goal of this game is to color all edges green :</p>
+    <p>
+        <strong>Goal:</strong> Flip black flippable edges so that, at the end of the game, all edges of the triangulation are green.
+    </p>
 
     <button onclick="document.querySelector('#allGreenPopup').show()">
-    All-Green Solitaire game
+        All-Green Solitaire game
     </button>
 
     <custom-popup id="allGreenPopup">
@@ -64,60 +65,58 @@
     <div class="scientific-content">
         <h3>1.1 Observations</h3>
         <p>
-        As you may have noticed by playing a few games, it is not always possible to win.
-        For example, a triangulated convex pentagon cannot be fully colored green.
+            As you may have noticed by playing a few games, it is not always possible to win.
+            For example, a triangulated convex pentagon cannot be fully colored green.
         </p>
-        <img src="Images/Pentagone1.png" width=200 and height=150> <img src="Images/Pentagone2.png" width=200 and height=150>
+
+        <figure>
+            <img src="Images/Pentagone1.png" width="200" height="150" alt="Triangulated convex pentagon example 1">
+            <img src="Images/Pentagone2.png" width="200" height="150" alt="Triangulated convex pentagon example 2">
+        </figure>
+
         <p>
-        However, for a triangulation of n points in convex position, it is possible
-        to decide in advance whether there is a winning sequence and to find a strategy
-        to obtain it, both in O(n) time.
+            However, for a triangulation of <span class="math">n</span> points in convex position, it is possible
+            to decide in advance whether there is a winning sequence and to find a strategy to obtain it,
+            both in time <span class="math">O(n)</span>.
         </p>
         <p>
-        Because the points are in convex position, the dual graph is a tree of maximum
-        degree three. This allows us to recursively decompose the triangulation along
-        diagonals in a tree-like way.
+            Because the points are in convex position, the dual graph of the triangulation is a tree of
+            maximum degree three. This allows us to recursively decompose the triangulation along diagonals
+            in a tree-like way.
         </p>
-   
-    
 
         <h3>1.2 Recursive decomposition</h3>
 
         <p>
-        The idea is to take an oriented diagonal d and look at the
-        triangulated subpolygon S on its right. Inside S, there are exactly two
-        diagonals d1 and d2 that, together with d, form a triangle. These diagonals
-        define two subpolygons S1 and S2 (in counterclockwise order). We can apply
-        the same construction recursively to S1 and S2, obtaining smaller subpolygons
-        S1,1, S1,2, S2,1, S2,2, and so on, until we reach single triangles on the
-        boundary.
-        </p>
-        
-        <img src="Images/Decomposition.png">
-        
-
-        <h3>1.3 Definition of <span class="math">n(S)</span></h3>
-
-        <p>
-        We define <em>n(S)</em> for any subpolygon <em>S</em> as the maximum number of edges
-        that can be turned green by flipping only edges strictly inside <em>S</em>, assuming
-        all edges in <em>S</em> start black. If <em>S</em> is a single triangle, there are no
-        flippable edges, so <em>n(S) = 0</em>.
+            The idea is to take an oriented diagonal <em>d</em> and look at the triangulated subpolygon
+            <em>S</em> on its right. Inside <em>S</em>, there are exactly two diagonals <em>d₁</em> and <em>d₂</em> that,
+            together with <em>d</em>, form a triangle. These diagonals define two subpolygons <em>S₁</em> and
+            <em>S₂</em> (in counterclockwise order). We can apply the same construction recursively to
+            <em>S₁</em> and <em>S₂</em>, obtaining smaller subpolygons <em>S₁,₁</em>, <em>S₁,₂</em>, <em>S₂,₁</em>,
+            <em>S₂,₂</em>, and so on, until we reach single triangles on the boundary.
         </p>
 
+        <figure>
+            <img src="Images/Decomposition.png" alt="Recursive decomposition along diagonals">
+            <figcaption>Recursive decomposition of a triangulated convex polygon along an oriented diagonal.</figcaption>
+        </figure>
+
+        <h3>1.3 Definition of <span class="math">n(S)</span> and recurrence</h3>
+
         <p>
-        With <em>d₁</em> and <em>d₂</em>, there are only three choices:
-        we flip <em>d₁</em>, or we flip <em>d₂</em>, or we flip neither. We cannot flip both,
-        because once one is flipped the other is no longer flippable.
+            We define <em>n(S)</em> for any subpolygon <em>S</em> as the maximum number of edges
+            that can be turned green by flipping only edges strictly inside <em>S</em>, assuming
+            all edges in <em>S</em> start black. If <em>S</em> is a single triangle, there are no
+            flippable edges, so <em>n(S) = 0</em>.
         </p>
 
         <p>
-        Flipping <em>d₁</em> gives 5 green edges (the new diagonal and the four edges of
-        its quadrilateral) and then we continue independently inside the resulting
-        subpolygons. This gives:
+            With <em>d₁</em> and <em>d₂</em>, there are only three choices: we flip <em>d₁</em>, we flip <em>d₂</em>,
+            or we flip neither. We cannot flip both, because once one is flipped the other is no longer
+            flippable. Flipping <em>d₁</em> makes 5 edges green (the new diagonal and the four edges of
+            its quadrilateral) and then we continue independently inside the resulting subpolygons.
+            This gives:
         </p>
-
-        <p>Flipping <em>d₁</em> gives:</p>
 
         <div class="math-block">
         \[
@@ -133,7 +132,7 @@
         \]
         </div>
 
-        <p>If we flip neither:</p>
+        <p>If we flip neither, the only possible flips are inside <em>S₁</em> and <em>S₂</em>, giving:</p>
 
         <div class="math-block">
         \[
@@ -153,36 +152,32 @@
         \]
         </div>
 
-
         <h3>1.4 Complexity</h3>
 
         <p>
-        Because the triangulation is in convex position, each subpolygon is explored only once, and each value <em>n(S)</em> depends on a constant
-        number of smaller subpolygons. This allows us to find all values of <em>n(S)</em> in <em>O(n)</em> time.
+            Because the triangulation is in convex position, each subpolygon is explored only once,
+            and each value <em>n(S)</em> depends on a constant number of smaller subpolygons. This allows
+            us to find all values of <em>n(S)</em> in time <em>O(n)</em>.
         </p>
 
         <p>
-        By recording which option (flip <em>d₁</em>, flip <em>d₂</em>, or flip neither) gives
-        the maximum for each subpolygon, we can reconstruct an optimal sequence of
-        flips in another <em>O(n)</em> time. Evaluating <em>n(S)</em> for the whole polygon
-        gives the maximum number of edges that can be turned green, and comparing this
-        number with the total number of edges tells us whether it is possible to color
-        all edges green.
+            By recording which option (flip <em>d₁</em>, flip <em>d₂</em>, or flip neither) gives
+            the maximum for each subpolygon, we can reconstruct an optimal sequence of flips in another
+            <em>O(n)</em> time. Evaluating <em>n(S)</em> for the whole polygon gives the maximum number
+            of edges that can be turned green, and comparing this number with the total number of edges
+            tells us whether it is possible to color all edges green.
         </p>
-    
-    <h2>2. Green-Wins Solitaire game</h2>
-    
-    <p>The goal of this game is to obtain more green edges than black edges :</p>
+    </div>
+
+    <h3>2. Green-Wins Solitaire Game</h3>
+
+    <p>
+        <strong>Goal:</strong> Flip black flippable edges so that, at the end of the game, the number of green edges is strictly larger than the number of black edges.
+    </p>
 
     <button onclick="document.querySelector('#greenWinsPopup').show()">
         Green-Wins Solitaire game
     </button>
-    
-    <p>
-    This game shows that, for a triangulation in general position, the situation becomes much more complex. 
-    Even for a seemingly easier objective, trying to end with simply more green edges than black, 
-    the decision problem of whether a given triangulation has a winning sequence is still open. 
-    </p>
 
     <custom-popup id="greenWinsPopup">
         <u>Green-Wins Solitaire game</u>
@@ -190,6 +185,15 @@
         <div id="green-wins-container" style="width: 800px; height: 600px;"></div>
         <script src="games/transforming/Green-Wins Solitaire.js"></script>
     </custom-popup>
+
+    <div class="scientific-content">
+        <h3>2.1 Complexity and open questions</h3>
+        <p>
+            This game shows that, for a triangulation in general position, the situation becomes much more complex. 
+            Even for a seemingly easier objective, trying to end with simply more green edges than black, 
+            the decision problem of whether a given triangulation has a winning sequence is still open. 
+        </p>
+    </div>
 
 
     <h2> Marking games</h2>
