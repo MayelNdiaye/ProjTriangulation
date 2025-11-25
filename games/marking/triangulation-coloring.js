@@ -1,8 +1,7 @@
-const nimString = (p) => {
+const triangulationColoring = (p) => {
   p.setup = function () {
     p.createCanvas(800, 600);
     p.textSize(20);
-
 
     p.points = [];
     p.edges = [];
@@ -11,6 +10,7 @@ const nimString = (p) => {
     p.colors = ["red", "blue"];
     p.centerPt = 0;
     p.won = false;
+    p.winner = null;
 
     p.generateConvexPolygon(6); // 6 vertices
     p.buildTriangulations(); // simple triangulation
@@ -24,6 +24,7 @@ const nimString = (p) => {
       p.triangles = [];
       p.currentPlayer = 0;
       p.won = false;
+      p.winner = null;
       p.generateConvexPolygon(6);
       p.buildTriangulations();
     });
@@ -38,42 +39,31 @@ const nimString = (p) => {
   }
 
   p.mousePressed = function () {
+    if (p.won) return;
+
     for (let e of p.edges) {
       if (!e.marked && p.isMouseNearEdge(e)) {
         // Mark edge green
         e.marked = true;
-        e.owner = p.currentPlayer;
         e.color = "green";
 
-        let completed = p.checkCompletedTriangles(p.currentPlayer);
+        // Check if this move completes a green triangle
+        let completed = p.checkCompletedGreenTriangles(p.currentPlayer);
 
-        if (completed <= 0) {
+        if (completed > 0) {
+          p.won = true;
+          p.winner = p.currentPlayer;
+        } else {
           p.currentPlayer = 1 - p.currentPlayer;
         }
         break;
       }
     }
-    p.checkGameState();
   }
 
   //////////////////////////////////////////////////////////
   // Geometry + game logic
   //////////////////////////////////////////////////////////
-
-  p.checkGameState = function() {
-    let result = true;
-    
-    for (e of p.edges) {
-      if (!e.marked) {
-        result = false;
-        break;
-      }
-    }
-    
-    if (result) {
-      p.won = true;
-    }
-  }
 
   p.generateConvexPolygon = function(n) {
     let angleStep = (3.141582*2) / n;
@@ -90,13 +80,12 @@ const nimString = (p) => {
     }
   }
 
-  // helper to add unique undirected edge
   p.addEdge = function (a, b) {
     if (a > b) [a, b] = [b, a];
     for (let i = 0; i < p.edges.length; i++) {
       if (p.edges[i].a === a && p.edges[i].b === b) return i;
     }
-    p.edges.push({ a: a, b: b, color: "black" });
+    p.edges.push({ a: a, b: b, color: "black", marked: false });
     return p.edges.length - 1;
   }
 
@@ -110,7 +99,7 @@ const nimString = (p) => {
       p.addEdge(i, (i + 1) % n);
     }
 
-    // now create triangles and add missing center edges as needed
+    // create triangles and add center edges
     for (let i = 1; i < n - 1; i++) {
       const a = p.centerPt,
         b = i,
@@ -122,7 +111,7 @@ const nimString = (p) => {
     }
   }
 
-  p.checkCompletedTriangles = function (player) {
+  p.checkCompletedGreenTriangles = function (player) {
     let completed = 0;
     for (let t of p.triangles) {
       if (t.completedBy === null) {
@@ -151,8 +140,7 @@ const nimString = (p) => {
     return d < 10;
   }
 
-  // Distance from point to segment
-  p.distToSegment= function (px, py, x1, y1, x2, y2) {
+  p.distToSegment = function (px, py, x1, y1, x2, y2) {
     const A = px - x1;
     const B = py - y1;
     const C = x2 - x1;
@@ -239,14 +227,14 @@ const nimString = (p) => {
     p.fill(0);
     p.text("Current player: " + p.colors[p.currentPlayer], 10, 80);
     if (p.won) {
-      p.text("Winner: " + p.colors[1 - p.currentPlayer], 10, 110);
+      p.text("Winner: " + p.colors[p.winner], 10, 110);
     }
   }
 }
 
 window.addEventListener("load", () => {
-  const container = document.getElementById("nimstring-container");
+  const container = document.getElementById("triangulation-coloring-container");
   if (container) {
-    new p5(nimString, container);
+    new p5(triangulationColoring, container);
   }
 });

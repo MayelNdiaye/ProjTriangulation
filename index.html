@@ -202,8 +202,78 @@
         </p>
     </div>
 
-    <p>The goal of this game is to avoid completing the marking of the triangulation. A player looses when he can't mark an edge and the players must keep playing until no more edges can be marked.
-        Each (of the 2) players take turns by marking an edge and if one completes a triangle, this player must play again.</p>
+    <h3>1. Triangulation Coloring Game (Game 2.3.1)</h3>
+
+    <p><strong>Goal:</strong> Two players alternately color black edges green; the first to complete a green (empty) triangle wins.</p>
+
+    <button onclick="document.querySelector('#triangulationColoringPopup').show()">
+        Triangulation Coloring Game
+    </button>
+
+    <custom-popup id="triangulationColoringPopup">
+        <u>Triangulation Coloring Game</u>
+        <div id="triangulation-coloring-container" style="width: 900px; height: 700px;"></div>
+        <script src="games/marking/triangulation-coloring.js"></script>
+    </custom-popup>
+
+    <div class="scientific-content">
+        <h3>1.1 Complexity Results from the Paper</h3>
+        
+        <h4>General Observations</h4>
+        <ul>
+            <li>The game always ends after a linear number of moves (only O(n) edges exist).</li>
+            <li>In general triangulations the problem is open and may be hard, but for certain classes the authors prove efficient algorithms.</li>
+        </ul>
+
+        <h4>Solved Case: Simple-Branching Triangulations in Convex Position</h4>
+        
+        <p>
+            From the paper:
+        </p>
+
+        <blockquote style="margin: 1em 0; padding: 0.5em 1em; border-left: 3px solid #333; background-color: #f5f5f5;">
+            "Deciding whether the Triangulation Coloring Game on a simple-branching triangulation …as well as finding moves leading to an optimal strategy, can be solved in time linear in the size of the triangulation."
+        </blockquote>
+
+        <h4>Why is it Solvable in Linear Time?</h4>
+        
+        <ul>
+            <li>The dual graph of the triangulation becomes a tree of degree ≤ 3.</li>
+            
+            <li>By removing inner triangles that cannot contribute to a winning configuration, the game decomposes into independent "heaps" that behave exactly like <strong>Kayles</strong> (a classical impartial game).</li>
+            
+            <li>Kayles has a known Sprague–Grundy (Nim) sequence with a periodic structure.</li>
+            
+            <li>Computing the Nim-value of the whole position reduces to:
+                <ul>
+                    <li>Breaking the triangulation into independent paths,</li>
+                    <li>Computing the Nim-value of each path (constant time using the precomputed table),</li>
+                    <li>XOR-ing them.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h4>Resulting Complexity</h4>
+        
+        <table style="width: 100%; border-collapse: collapse; margin: 1em 0;">
+            <tr style="border-bottom: 2px solid #333;">
+                <th style="text-align: left; padding: 0.5em;">Task</th>
+                <th style="text-align: left; padding: 0.5em;">Complexity</th>
+            </tr>
+            <tr style="border-bottom: 1px solid #ccc;">
+                <td style="padding: 0.5em;">Decide winner</td>
+                <td style="padding: 0.5em;">O(n)</td>
+            </tr>
+            <tr>
+                <td style="padding: 0.5em;">Compute optimal move</td>
+                <td style="padding: 0.5em;">O(n) per move (exploring all legal moves costs linear time)</td>
+            </tr>
+        </table>
+    </div>
+
+    <h3>2. Nimstring (Game 2.3.4)</h3>
+
+    <p><strong>Goal:</strong> Players alternately mark edges; completing a triangle gives an extra move. Normal play: the last player to complete a full turn wins.</p>
 
     <button onclick="document.querySelector('#nimStringPopup').show()">
         Nimstring Game
@@ -215,15 +285,141 @@
         <script src="games/marking/nimstring.js"></script>
     </custom-popup>
 
-    
-    
+    <div class="scientific-content">
+        <h3>2.1 General Complexity</h3>
+        
+        <ul>
+            <li>The paper does not give a general polynomial-time algorithm for arbitrary triangulations.</li>
+            <li>The structure of Nimstring is deeply connected to <strong>Dots-and-Boxes</strong>, which is known to have difficult computational behavior.</li>
+            <li>However, the authors provide complete characterizations for special classes:
+                <ul>
+                    <li>Fans (dual is a path; all triangles incident to one vertex)</li>
+                    <li>Wheels (dual is a cycle; all triangles incident to one vertex)</li>
+                </ul>
+            </li>
+            <li>For these shapes, the outcome can be determined easily based on parity and symmetry arguments.</li>
+        </ul>
+
+        <h3>2.2 Complexity on Fans</h3>
+        
+        <h4>Main Theorem (Fans)</h4>
+        
+        <blockquote style="margin: 1em 0; padding: 0.5em 1em; border-left: 3px solid #333; background-color: #f5f5f5;">
+            "Nimstring in a fan with an even number of vertices is a first-player win."
+        </blockquote>
+
+        <h4>Reasoning</h4>
+        
+        <ul>
+            <li>The first player marks the middle spoke, dividing the fan into two symmetric halves.</li>
+            <li>Then she plays by mirror strategy, guaranteeing either:
+                <ul>
+                    <li>The opponent creates a "lune" (a loony pattern → first-player win), or</li>
+                    <li>The game ends by parity: with an even number of vertices, the opponent cannot complete the last turn.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h4>Complexity</h4>
+        
+        <ul>
+            <li>Recognizing that the triangulation is a fan: O(n)</li>
+            <li>Applying the symmetric strategy: O(1) per move</li>
+        </ul>
+
+        <h3>2.3 Complexity on Wheels</h3>
+        
+        <h4>Main Theorem (Wheels)</h4>
+        
+        <blockquote style="margin: 1em 0; padding: 0.5em 1em; border-left: 3px solid #333; background-color: #f5f5f5;">
+            "Nimstring in a wheel with an odd number of vertices is a second-player win."
+        </blockquote>
+
+        <h4>Reasoning</h4>
+        
+        <ul>
+            <li>The second player can reflect the first player's move across a rotational symmetry of the wheel.</li>
+            <li>As in the fan case, symmetry prevents the first player from gaining advantage unless they enter a loony configuration.</li>
+        </ul>
+
+        <h4>Complexity</h4>
+        
+        <ul>
+            <li>Detect wheel structure: O(n)</li>
+            <li>Reflection-based strategy: O(1) per move</li>
+        </ul>
+
+        <h3>2.4 Game-Theoretic Tools</h3>
+        
+        <p>The Nimstring analysis relies on:</p>
+        
+        <ul>
+            <li>The String-and-Coins interpretation (a variant of Dots-and-Boxes),</li>
+            <li>Recognition of loony positions, which can be done in linear time, as mentioned in the text:
+                <blockquote style="margin: 0.5em 0; padding: 0.5em 1em; border-left: 3px solid #333; background-color: #f5f5f5;">
+                    "Such positions are detectable in linear time."
+                </blockquote>
+            </li>
+        </ul>
+
+        <p>
+            Thus on these specific families of triangulations, the authors achieve polynomial-time winner determination, even though the general problem remains open.
+        </p>
+
+        <h3>2.5 Summary Table</h3>
+        
+        <table style="width: 100%; border-collapse: collapse; margin: 1em 0;">
+            <tr style="border-bottom: 2px solid #333;">
+                <th style="text-align: left; padding: 0.5em;">Game</th>
+                <th style="text-align: left; padding: 0.5em;">Triangulation Class</th>
+                <th style="text-align: left; padding: 0.5em;">Winner Decision</th>
+                <th style="text-align: left; padding: 0.5em;">Strategy Construction</th>
+            </tr>
+
+            
+            <tr style="border-bottom: 1px solid #ccc;">
+                <td style="padding: 0.5em;">Triangulation Coloring Game</td>
+                <td style="padding: 0.5em;">simple-branching, convex</td>
+                <td style="padding: 0.5em;">O(n)</td>
+                <td style="padding: 0.5em;">O(n) per move</td>
+            </tr>
+
+            <tr style="border-bottom: 1px solid #ccc;">
+                <td style="padding: 0.5em;">Triangulation Games</td>
+                <td style="padding: 0.5em;">Others (generalized)</td>
+                <td style="padding: 0.5em;">polynomial time (n^k)</td>
+                <td style="padding: 0.5em;">polynomial time (n^k)</td>
+            </tr>
+            
+            <tr style="border-bottom: 1px solid #ccc;">
+                <td style="padding: 0.5em;">Nimstring</td>
+                <td style="padding: 0.5em;">fans</td>
+                <td style="padding: 0.5em;">O(1) after recognition</td>
+                <td style="padding: 0.5em;">O(1)/move (symmetry)</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #ccc;">
+                <td style="padding: 0.5em;">Nimstring</td>
+                <td style="padding: 0.5em;">wheels</td>
+                <td style="padding: 0.5em;">O(1) after recognition</td>
+                <td style="padding: 0.5em;">O(1)/move (symmetry)</td>
+            </tr>
+            
+            <tr>
+                <td style="padding: 0.5em;">Nimstring</td>
+                <td style="padding: 0.5em;">general triangulations</td>
+                <td style="padding: 0.5em;">open problem</td>
+                <td style="padding: 0.5em;">open problem</td>
+            </tr>
+        </table>
+    </div>
+
     <h2>References</h2>
     <section id="references">
   <ol>
     <li>
       O. Aichholzer, D. Bremner, E. D. Demaine, F. Hurtado, E. Kranakis, H. Krasser,
       S. Ramaswami, S. Sethia, and J. Urrutia,
-      “Games on triangulations,” <em>Theoretical Computer Science</em>,
+      "Games on triangulations," <em>Theoretical Computer Science</em>,
       vol. 343, no. 1–2, pp. 42–71, 2005.
       [Online]. Available:
       <a href="https://erikdemaine.org/papers/TriangulationGames_TCS/paper.pdf" target="_blank" rel="noopener noreferrer">
