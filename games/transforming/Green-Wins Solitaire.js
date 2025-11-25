@@ -23,8 +23,8 @@ const greenWinsSketch = (p) => {
 
   p.setup = function () {
     const parent = document.getElementById("green-wins-container");
-    const w = parent.clientWidth || 900;
-    const h = parent.clientHeight || 700;
+    const w = parent.clientWidth || 800;
+    const h = parent.clientHeight || 600;
 
     const canvas = p.createCanvas(w, h);
     canvas.parent(parent);
