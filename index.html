@@ -209,8 +209,20 @@
         <script src="games/marking/nimstring.js"></script>
     </custom-popup>
 
-    
-    
+    <h3>Triangulation Coloring Game</h3>
+
+    <p>The goal of this game is to be the first player to complete a green triangle. Players take turns coloring black edges green. The first player who completes an empty green triangle wins immediately.</p>
+
+    <button onclick="document.querySelector('#triangulationColoringPopup').show()">
+        Triangulation Coloring Game
+    </button>
+
+    <custom-popup id="triangulationColoringPopup">
+        <u>Triangulation Coloring Game</u>
+        <div id="triangulation-coloring-container" style="width: 900px; height: 700px;"></div>
+        <script src="games/marking/triangulation-coloring.js"></script>
+    </custom-popup>
+
     <h2>References</h2>
     <section id="references">
   <ol>
