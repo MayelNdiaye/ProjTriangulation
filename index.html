@@ -22,16 +22,91 @@
     </div>
 
     <h2>Constructing games</h2>
-    In this category, players construct a triangulation T(S) on a given point set S. Starting from no edges, 
-    players R and B play in turn by drawing one or more edges in each move.
-
-    <p>The goal of this game is to be the first player to completes one empty triangle :</p>
+    <div class="scientific-content">
+        <p>
+    In this category, players construct a triangulation <em>T(S)</em> on a given point set <em>S</em>. Starting from no edges, 
+    players <em>R</em> and <em>B</em> play in turn by drawing one or more edges in each move.Both the games shown start with a convex set of points <em>S</em>.
+        </p>
+        </div>  
+    <h3>1. Monochromatic Single Triangle</h3>
+    <p><strong>goal :</strong> be the first player to completes one empty triangle :</p>
 
     <button onclick="document.querySelector('#singletriangpopup').show()">Monochromatic Single Triangle game</button>
     <custom-popup id="singletriangpopup">
         <p>Monochromatic Single Triangle game</p>
         <script src="games/constructing/single-triangle.js"></script>
     </custom-popup>
+    <h3>1.1 Observations</h3>
+    <div class="scientific-content">
+        <p>
+            In this game the player who draws the last edge win.It is easy to notice that a player should never use a vertex thats already used as it means that the next move a triangle can be formed.
+            From this we can see that each time a diagonal <em>pq</em> is drawn, the set is divided in two separate sets with cardinality <em>n₁ +n₂ = n - 2</em> with <em>n</em> the cardinality of the set.
+        </p>
+    </div>
+    <h3>1.2 Paper Results</h3>
+        <div class="scientific-content">
+        <p>
+            From those observations the authors show that this game is an instance of a  Dawson's Kayles game and use it to show that this game 
+            is a second-player winner game for <em>n ≡ 5, 9, 21, 25, 29 (mod 34)</em> and for <em> n = 15</em> and <em> n = 35</em>
+        <p>
+        <p>
+            The winning strategy consists of first drawing the diagonal that splits the set in two then each player play the symetric move to the other unless there is a winning move.
+
+        </p>
+    </div>
+    <h3>1.3 Complexity</h3>
+    <div class="scientific-content">
+        <p>
+            As seen in the papers result the winner is know as soon as we have the cardinality of the set.
+            meaning it can be computed in <span class="math">O(1)</span> time.
+            As for the winning strategy it consists in playing the symetric move of the opponent meaning that each move can be computed in <span class="math">O(n)</span> time.
+        </p>
+        <h3>2. Monochromatic Complete Triangulation</h3>
+        <strong>goal :</strong> be the player with the most empty triangles formed, when a player forms an empty triangle he gets another turn</p>
+    <button onclick="document.querySelector('#completetriangpopup').show()">Monochromatic Complete Triangulation game</button>
+    <custom-popup id="completetriangpopup">
+        <p>Monochromatic Complete Triangulation game</p>
+        <script src="games/constructing/complete-triangulation.js"></script>
+    </custom-popup>
+    <h3>2.1 Observations</h3>
+    <div class="scientific-content">
+        <p>
+            In this game the player who forms the most triangles win. There are different type 
+            of edges that can be added,
+            closing edges that complete a triangle, merging edges that connect two components 
+            and redundant edges that join points in the same component without forming triangles.
+            The number of merging edges is <em>n - 1</em>.
+        </p>
+        <figure>
+            <img src="Images/Closing.png" width="150" height="150" alt="Closing edge example">
+            <img src="Images/Merging.png" width="150" height="150" alt="Merging edge example">
+            <img src="Images/Redundant.png" width="150" height="150" alt="Redundant edge example">
+            <figcaption>In order closing, merging and redundant edges.</figcaption>
+        </figure>
+    </div>
+    <h3>2.2 Paper Results</h3>
+    <div class="scientific-content">
+        <p>
+            From those observations the authors show that the winning algorithm
+            is the greedy one.It first show that no redundant edges should be formed, as a triangle 
+            shoud be closed as soon as possible to block the other player from forming it and keeping the same number of merging edges.
+            Then it shows that the player should always play a closing edge if possible, then if not possible draw the merging edge with the lowest weight.
+        </p>
+        <p>
+            This lead to three results:
+            When <em>n </em> is odd the first player wins.
+            when <em> n </em> is even the first player can force a tie.
+            when <em> n </em> is even the second player can force a tie.
+        </p>
+    </div>
+    <h3>2.3 Complexity</h3>
+    <div class="scientific-content">
+        <p>
+            As seen in the papers result the winner is know as soon as we have the cardinality of the set.
+            meaning it can be computed in <span class="math">O(1)</span> time.
+            As for the winning strategy it consists in playing the greedy move meaning that
+            meaning that each move can be computed in <span class="math">O(n)</span> as we have to check for closing edges first then find the lowest weight merging edge.
+        </p>
 
 
     <h2>Transforming games</h2>
@@ -370,9 +445,10 @@
             Thus on these specific families of triangulations, the authors achieve polynomial-time winner determination, even though the general problem remains open.
         </p>
 
-        <h3>2.5 Summary Table</h3>
+        <h3>3. Summary Table</h3>
         
         <table style="width: 100%; border-collapse: collapse; margin: 1em 0;">
+
             <tr style="border-bottom: 2px solid #333;">
                 <th style="text-align: left; padding: 0.5em;">Game</th>
                 <th style="text-align: left; padding: 0.5em;">Triangulation Class</th>
@@ -380,7 +456,19 @@
                 <th style="text-align: left; padding: 0.5em;">Strategy Construction</th>
             </tr>
 
-            
+            <tr style="border-bottom: 1px solid #ccc;">
+                <td style="padding: 0.5em;">Monochromatic Complete Triang.</td>
+                <td style="padding: 0.5em;">Convex position</td>
+                <td style="padding: 0.5em;">O(1)</td>
+                <td style="padding: 0.5em;">O(n) per move</td>
+            </tr>
+
+            <tr style="border-bottom: 1px solid #ccc;">
+                <td style="padding: 0.5em;">Monochromatic Triangle</td>
+                <td style="padding: 0.5em;">Convex position</td>
+                <td style="padding: 0.5em;">O(1)</td>
+                <td style="padding: 0.5em;">O(n) per move</td>
+            </tr>
             <tr style="border-bottom: 1px solid #ccc;">
                 <td style="padding: 0.5em;">Triangulation Coloring Game</td>
                 <td style="padding: 0.5em;">simple-branching, convex</td>
