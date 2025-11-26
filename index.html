@@ -155,9 +155,8 @@
             both in time <span class="math">O(n)</span>.
         </p>
         <p>
-            Because the points are in convex position, the dual graph of the triangulation is a tree of
-            maximum degree three. This allows us to recursively decompose the triangulation along diagonals
-            in a tree-like way.
+            Because the triangulation is of a convex polygon, every diagonal is flippable and every quadrilateral formed by two adjacent triangles is convex. 
+            This ensures that the recursive decomposition along diagonals is always valid and produces a clean tree structure matching the dual graph.
         </p>
 
         <h3>1.2 Recursive decomposition</h3>
@@ -504,6 +503,27 @@
             </tr>
         </table>
     </div>
+
+    <h2>Authors</h2>
+
+    <div class="scientific-content">
+        <ul>
+            <li>
+                <strong>Mayel N'Diaye</strong> - 000570921  
+                <br><em>Responsible for the Constructing Games section</em>
+            </li>
+            <li>
+                <strong>Victor t'Serstevens</strong> - 000513771  
+                <br><em>Responsible for the Transforming Games section</em>
+            </li>
+            <li>
+                <strong>Louis Devroye</strong> - 000523920  
+                <br><em>Responsible for the Marking Games section</em>
+            </li>
+        </ul>
+    </div>
+
+
 
     <h2>References</h2>
     <section id="references">

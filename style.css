@@ -86,3 +86,7 @@ custom-popup button{
     padding: 1rem;
     border-radius: 6px;
 }
+
+body {
+        background-color: rgb(223, 235, 240); /* any CSS color */
+        }
