@@ -313,12 +313,12 @@
             "Deciding whether the Triangulation Coloring Game on a simple-branching triangulation …as well as finding moves leading to an optimal strategy, can be solved in time linear in the size of the triangulation."
         </blockquote>
 
-        <h4>Why is it Solvable in Linear Time?</h4>
+        <h4>Solving in Linear Time</h4>
         
         <ul>
             <li>The dual graph of the triangulation becomes a tree of degree ≤ 3.</li>
             
-            <li>By removing inner triangles that cannot contribute to a winning configuration, the game decomposes into independent "heaps" that behave exactly like <strong>Kayles</strong> (a classical impartial game).</li>
+            <li>By removing inner triangles that cannot contributes to a winning configuration, the game decomposes into independent "heaps" that behave exactly like <strong>Kayles</strong> (a classical impartial game).</li>
             
             <li>Kayles has a known Sprague–Grundy (Nim) sequence with a periodic structure.</li>
             
@@ -371,8 +371,8 @@
             <li>The structure of Nimstring is deeply connected to <strong>Dots-and-Boxes</strong>, which is known to have difficult computational behavior.</li>
             <li>However, the authors provide complete characterizations for special classes:
                 <ul>
-                    <li>Fans (dual is a path; all triangles incident to one vertex)</li>
-                    <li>Wheels (dual is a cycle; all triangles incident to one vertex)</li>
+                    <li>Fans (dual is a path and all the triangles are incident to one vertex)</li>
+                    <li>Wheels (dual is a cycle and all the triangles are incident to one vertex)</li>
                 </ul>
             </li>
             <li>For these shapes, the outcome can be determined easily based on parity and symmetry arguments.</li>
@@ -493,13 +493,6 @@
                 <td style="padding: 0.5em;">wheels</td>
                 <td style="padding: 0.5em;">O(1) after recognition</td>
                 <td style="padding: 0.5em;">O(1)/move (symmetry)</td>
-            </tr>
-            
-            <tr>
-                <td style="padding: 0.5em;">Nimstring</td>
-                <td style="padding: 0.5em;">general triangulations</td>
-                <td style="padding: 0.5em;">open problem</td>
-                <td style="padding: 0.5em;">open problem</td>
             </tr>
         </table>
     </div>
