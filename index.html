@@ -50,7 +50,8 @@
             is a second-player winner game for <em>n ≡ 5, 9, 21, 25, 29 (mod 34)</em> and for <em> n = 15</em> and <em> n = 35</em>
         <p>
         <p>
-            The winning strategy consists of first drawing the diagonal that splits the set in two then each player play the symetric move to the other unless there is a winning move.
+            When n is even the winning strategy consists of first drawing the diagonal that splits the set in two then each player play the symetric move to the other unless there is a winning move.
+            For n odd the winning strategy is just the strategy for a Dawson's Kayles game.
 
         </p>
     </div>
@@ -59,7 +60,7 @@
         <p>
             As seen in the papers result the winner is know as soon as we have the cardinality of the set.
             meaning it can be computed in <span class="math">O(1)</span> time.
-            As for the winning strategy it consists in playing the symetric move of the opponent meaning that each move can be computed in <span class="math">O(n)</span> time.
+            As for the winning strategy both cases are solved in <span class="math">O(n)</span> time.
         </p>
         <h3>2. Monochromatic Complete Triangulation</h3>
         <strong>goal :</strong> be the player with the most empty triangles formed, when a player forms an empty triangle he gets another turn</p>

@@ -313,8 +313,8 @@ function completeTriangulation(p) {
         if (p.winner > 0) {
             p.fill(0);
             p.textSize(32);
-            if (p.winner === 1) p.text("Player 1 wins!", 100, 200);
-            else if (p.winner === 2) p.text("Player 2 wins!", 100, 200);
+            if (p.winner === 1) p.text("Player 2 wins!", 100, 200);
+            else if (p.winner === 2) p.text("Player 1 wins!", 100, 200);
             else p.text("It's a tie!", 150, 200);
         }
     };

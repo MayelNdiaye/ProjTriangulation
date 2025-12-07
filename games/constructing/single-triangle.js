@@ -165,7 +165,7 @@ function singleTriangle(p) {
             p.noStroke();
             p.textSize(28);
             p.textAlign(p.CENTER, p.CENTER);
-            p.fill(p.winner === 1 ? "green" : "red");
+            p.fill(p.winner === 1 ? "red" : "green");
             p.text("Player " + p.winner + " made a triangle!", p.width / 2, p.height / 2);
         }
     };
@@ -249,7 +249,7 @@ function singleTriangle(p) {
             const triMade = checkTriangle(p.edges[p.edges.length - 1]);
 
             if (triMade) {
-                p.winner = p.player ? 1 : 2;
+                p.winner = p.player ? 2 : 1;
                 p.inuse = false;
             } else {
                 p.player = !p.player;
